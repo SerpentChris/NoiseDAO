@@ -24,10 +24,16 @@ struct Proposal:
     # wallet is the address to send funds to for this proposal.
     wallet: address
     # value is the amount of wei to send to the wallet
-    value: uint256
+    value: wei_value
+    # time_submitted is the timestamp of the block in which this proposal was submitted.
+    time_submitted: timestamp
+
 
 NewMember: event({_sponsor: indexed(address), _address: indexed(address)})
+MemberVetoed: event({_vetoer: indexed(address), _vetoed: indexed(address)})
 NewProposal: event({_sponsor: indexed(address), _digest: indexed(bytes32)})
+ProposalVetoed: event({_vetoer: indexed(address), _vetoed: indexed(bytes32)})
+ProposalClaimed: event({_proposal: indexed(bytes32), _value: indexed(wei_value)})
 NewDonation: event({_donor: indexed(address), _value: indexed(wei_value)})
 
 # key for members is the member's address
@@ -68,22 +74,35 @@ def sponsor_member(_address: address, _handle: bytes32):
     self.handle_taken[_handle] = True
     self.members[sponsor_address].last_change = current_time
     log.NewMember(sponsor_address, _address)
+    return
 
-
-    return 
 
 @public
-def submit_proposal(_url: bytes32[4], _digest: bytes32, _wallet: address, _value: uint256):
+def veto_member(member: address):
+    assert self.members[msg.sender].sponsor != ZERO_ADDRESS, 'you are not a member'
+    assert (block.timestamp - self.members[msg.sender].time_joined) >= WEEK_IN_SECONDS, 'you are not a full member'
+    assert self.members[member].sponsor != ZERO_ADDRESS, 'they are not a member'
+    assert (block.timestamp - self.members[member].time_joined) < WEEK_IN_SECONDS, 'the veto period has expired'
+    clear(self.members[member])
+    log.MemberVetoed(msg.sender, member)
+
+
+@public
+def submit_proposal(_url: bytes32[4], _digest: bytes32, _wallet: address, _value: wei_value):
     sponsor_address: address = msg.sender
     current_time: timestamp = block.timestamp
     self.check_member(sponsor_address, current_time)
+
+    assert _value > 0, 'proposal must have a value'
+    assert self.balance > _value, 'not enough money for that proposal'
 
     p: Proposal = Proposal({
         sponsor: sponsor_address,
         url: _url,
         digest: _digest,
         wallet: _wallet,
-        value: _value
+        value: _value,
+        time_submitted: current_time
     })
 
     p_hash: bytes32 = keccak256(
@@ -95,13 +114,32 @@ def submit_proposal(_url: bytes32[4], _digest: bytes32, _wallet: address, _value
             p.url[3],
             p.digest,
             convert(p.wallet, bytes32),
-            convert(p.value, bytes32)
+            convert(p.value, bytes32),
+            convert(p.time_submitted, bytes32)
             )
     )
 
     self.members[sponsor_address].last_change = block.timestamp
     self.proposals[p_hash] = p
     log.NewProposal(sponsor_address, p_hash)
+
+
+@public
+def veto_proposal(proposal: bytes32):
+    assert self.members[msg.sender].sponsor != ZERO_ADDRESS, 'you are not a member'
+    assert (block.timestamp - self.members[msg.sender].time_joined) >= WEEK_IN_SECONDS, 'you are not a full member'
+    assert (block.timestamp - self.proposals[proposal].time_submitted) < WEEK_IN_SECONDS, 'the veto period has expired'
+    self.proposals[proposal].value = ZERO_WEI
+    log.ProposalVetoed(msg.sender, proposal)
+
+
+@public
+def claimProposal(proposal: bytes32):
+    assert (block.timestamp - self.proposals[proposal].time_submitted) >= WEEK_IN_SECONDS, 'the veto period has not expired'
+    assert self.proposals[proposal].value > 0, 'there is no value in this proposal'
+    send(self.proposals[proposal].wallet, self.proposals[proposal].value)
+    log.ProposalClaimed(proposal, self.proposals[proposal].value)
+    self.proposals[proposal].value = ZERO_WEI
 
 
 @public
