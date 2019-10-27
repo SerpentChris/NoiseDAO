@@ -1,3 +1,23 @@
+# NoiseDAO: a Distributed Autonomous Organization for handling Ethereum donations to Noisebridge.
+# Copyright (C) 2019  Christian Calderon
+# 
+# NoiseDAO is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+# 
+# NoiseDAO is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+# 
+# Contact the author by making an issue on github.com/SerpentChris/NoiseDAO,
+# or by emailing calderonchristian73@gmail.com
+
+
 # Members can propose ways to spend funds and sponsor new members.
 # Any member can veto a proposal or a sponsored member.
 # Members can sponsor a new member or submit a proposal (not both) once a week.
