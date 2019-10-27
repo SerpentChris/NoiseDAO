@@ -1,2 +1,4 @@
 # NoiseDAO
-A DAO for Noisebridge
+A DAO for Noisebridge.
+
+The purpose of NoiseDAO is to empower the members of the Noisebridge community by providing a mechanism by which those members can decide on how to spend their funds. The consensus mechanism is simple and familiar to the community: Any member can sponsor a new member, and any member can propose a way to spend the communities funds. At the same time, any member can veto any proposed member, and they can also veto any proposed spending. There is a one week period during which any member can submit their vetos. Members may only sponsor a new member or submit a proposal once a week. This purpose of the once-a-week limit is to prevent a member from submitting too many proposals for the community to cover. Every member's sponsor is tracked in the smart contract, potentially to be able to hold their sponsor partially accountable for the misdeeds of a member. The mechanism for expelling a member is not yet decided.
